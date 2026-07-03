@@ -1,0 +1,57 @@
+project: demo-customer-support-agent
+# Frozen golden scenarios for cross-layer behavioral sign-off (agent-handoff).
+# These are the acceptance bars an AI agency's client signs off against at
+# delivery. agent-acceptance replays them and folds in the memory-governance
+# gate to produce one combined report.
+scenarios:
+  - name: tool-schema-drift
+    description: Tool call args must match the frozen OpenAPI schema snapshot.
+    layers:
+      prompt:
+        expected: "Use search_docs for product questions."
+        actual: "Use search_docs for product questions."
+      tool:
+        expected:
+          name: search_docs
+          args: { query: "refund policy", top_k: 3 }
+        actual:
+          name: search_docs
+          args: { query: "refund policy", top_k: 3 }
+      memory:
+        expected: { user_id: "client-a", facts: [] }
+        actual: { user_id: "client-a", facts: [] }
+      retrieval:
+        expected: ["doc-refund-001"]
+        actual: ["doc-refund-001"]
+
+  - name: memory-bleed
+    description: Session memory must stay scoped to the active client tenant.
+    layers:
+      prompt:
+        expected: "Answer only from scoped client memory."
+        actual: "Answer only from scoped client memory."
+      tool:
+        expected: { name: lookup_account, args: { client_id: "client-a" } }
+        actual: { name: lookup_account, args: { client_id: "client-a" } }
+      memory:
+        expected: { user_id: "client-a", facts: ["plan: pro"] }
+        actual: { user_id: "client-a", facts: ["plan: pro"] }
+      retrieval:
+        expected: ["account-client-a"]
+        actual: ["account-client-a"]
+
+  - name: retrieval-miss
+    description: Retrieved chunks must match the golden grounding set for the query.
+    layers:
+      prompt:
+        expected: "Cite retrieved sources in the answer."
+        actual: "Cite retrieved sources in the answer."
+      tool:
+        expected: { name: search_docs, args: { query: "SLA uptime", top_k: 2 } }
+        actual: { name: search_docs, args: { query: "SLA uptime", top_k: 2 } }
+      memory:
+        expected: { user_id: "client-a", facts: [] }
+        actual: { user_id: "client-a", facts: [] }
+      retrieval:
+        expected: ["sla-2024", "support-policy"]
+        actual: ["sla-2024", "support-policy"]

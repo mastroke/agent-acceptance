@@ -1,0 +1,27 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          # agent-handoff and verified-memory-gate are sibling portfolio repos;
+          # install them editable from the workspace if present, else from PyPI
+          # would be the published path. In CI we only need the pure-Python core
+          # (no GateMem data), so a plain install of this package + deps works.
+          pip install -e .[dev]
+      - name: Test
+        run: pytest -q
