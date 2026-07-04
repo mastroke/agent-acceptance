@@ -25,24 +25,59 @@ pip install -e ../agent-handoff -e ../verified-memory-gate -e .[full,dev]
 agent-acceptance run examples/scenarios.yaml --report acceptance.md
 ```
 
-Output (`acceptance.md`):
+## Sample report
 
-```markdown
-# Agent Acceptance Report — demo-customer-support-agent
+Rendered `acceptance.md` from `examples/scenarios.yaml` with memory governance enabled (illustrative GateMem scores):
 
-**Overall verdict:** BEHAVIORAL_ONLY
-**CONDITIONAL** — behavioral sign-off passed; memory governance not assessed.
+### Agent Acceptance Report — demo-customer-support-agent
 
-## 1. Behavioral sign-off (cross-layer: prompt / tool / memory / retrieval)
+**Overall verdict:** PASS
+
+**ACCEPTED** — agent passes behavioral sign-off AND memory-governance gate.
+
+#### 1. Behavioral sign-off (cross-layer: prompt / tool / memory / retrieval)
+
 | Scenario | Verdict |
 | --- | --- |
 | tool-schema-drift | PASS |
 | memory-bleed | PASS |
 | retrieval-miss | PASS |
 
-## 2. Memory governance (GateMem-aligned MGS)
+#### 2. Memory governance (GateMem-aligned MGS)
+
+| Metric | Value |
+| --- | --- |
+| MGS (U·(1−A)·(1−F)) | 0.912 |
+| Utility (U) | 0.950 |
+| Access-leak rate (A, lower better) | 0.020 |
+| Forgetting-failure rate (F, lower better) | 0.000 |
+| Checkpoints scored | 6 |
+| Governance threshold | 0.50 |
+
+Without `--memory-domain`, the same scenarios produce **BEHAVIORAL_ONLY** — behavioral sign-off passes and memory governance is marked _not assessed_:
+
+<details>
+<summary>Behavioral-only <code>acceptance.md</code> (default quickstart)</summary>
+
+### Agent Acceptance Report — demo-customer-support-agent
+
+**Overall verdict:** BEHAVIORAL_ONLY
+
+**CONDITIONAL** — behavioral sign-off passed; memory governance not assessed.
+
+#### 1. Behavioral sign-off (cross-layer: prompt / tool / memory / retrieval)
+
+| Scenario | Verdict |
+| --- | --- |
+| tool-schema-drift | PASS |
+| memory-bleed | PASS |
+| retrieval-miss | PASS |
+
+#### 2. Memory governance (GateMem-aligned MGS)
+
 _Not assessed: memory governance not requested (pass --memory-domain)_
-```
+
+</details>
 
 Add the memory gate by pointing at a local GateMem bench tree (Ray368 JSONL shards):
 
